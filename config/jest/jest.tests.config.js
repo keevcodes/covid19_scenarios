@@ -14,7 +14,7 @@ module.exports = {
     'ts-jest': {
       babelConfig: true,
       diagnostics: {
-        pathRegex: /(\/__tests__\/.*|([./])(test|spec))\.[jt]sx?$/,
+        pathRegex: /(\/__tests?__\/.*|([./])(test|spec))\.[jt]sx?$/,
         warnOnly: true,
       },
     },
@@ -23,10 +23,13 @@ module.exports = {
     '^.+\\.(js|jsx)?$': 'babel-jest',
   },
   testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/*.(spec|test).{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/__test__/**/*.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/test/**/*.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/tests/**/*.{js,jsx,ts,tsx}',
   ],
-  transformIgnorePatterns: ['<rootDir>/node_modules/'],
+  transformIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/cypress'],
   moduleNameMapper: {
     '\\.(eot|otf|webp|ttf|woff\\d?|svg|png|jpe?g|gif)$':
       '<rootDir>/src/__mocks__/fileMock.js',
@@ -39,6 +42,7 @@ module.exports = {
     'jest-axe/extend-expect',
     '@testing-library/jest-dom/extend-expect',
   ],
+  setupFiles: ['<rootDir>/config/jest/mockPopperJS.js'],
   watchPlugins: [
     'jest-watch-typeahead/filename',
     'jest-watch-typeahead/testname',

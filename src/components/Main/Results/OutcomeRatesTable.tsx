@@ -1,32 +1,41 @@
 import React from 'react'
 
+import { useTranslation } from 'react-i18next'
+
 import { Col, Row } from 'reactstrap'
 
-import { AlgorithmResult } from '../../../algorithms/Result.types'
+import * as d3 from 'd3'
+
+import { AlgorithmResult } from '../../../algorithms/types/Result.types'
 
 import { SeverityTableRow } from '../Scenario/SeverityTable'
 
+import { numberFormatter } from '../../../helpers/numberFormat'
+
 export interface TableProps {
+  showHumanized?: boolean
   result?: AlgorithmResult
   rates?: SeverityTableRow[]
 }
 
-// FIXME: Use display format library instead
-const forDisplay = (x: number) => {
-  return Number((100 * x).toFixed(2))
-}
+const percentageFormatter = (v: number) => d3.format('.2f')(v * 100)
 
-export function OutcomeRatesTable({ result, rates }: TableProps) {
+export function OutcomeRatesTable({ showHumanized, result, rates }: TableProps) {
+  const { t } = useTranslation()
+
   if (!result || !rates) {
     return null
   }
-  const { params } = result
+
+  const formatNumber = numberFormatter(!!showHumanized, false)
 
   /*
   // FIXME: This looks like a prefix sum. Should we use `Array.reduce()` or a library instead?
   let deathFrac    = 0
   let severeFrac   = 0
   let criticalFrac = 0
+
+  const { params } = result
 
   rates.forEach(d => {
     const freq    = params.ageDistribution[d.ageGroup]
@@ -37,85 +46,81 @@ export function OutcomeRatesTable({ result, rates }: TableProps) {
 
   let mildFrac = 1 - severeFrac - criticalFrac - deathFrac
   */
-  
-  const endResult = result.deterministicTrajectory[result.deterministicTrajectory.length-1];
 
-  // FIXME: should use display format library instead of rounding
-  const totalDeath    = Math.round(endResult.dead.total)
-  const totalSevere   = Math.round(endResult.discharged.total)
-  const totalCritical = Math.round(endResult.intensive.total)
-  const totalCases    = Math.round(endResult.recovered.total) + totalDeath
+  const endResult = result.deterministic.trajectory[result.deterministic.trajectory.length - 1]
 
-  let severeFrac   = 1.0*totalSevere / totalCases
-  let criticalFrac = 1.0*totalCritical / totalCases
-  let deathFrac    = 1.0*totalDeath / totalCases
-  let mildFrac     = 1 - severeFrac - criticalFrac - deathFrac
+  const totalDeath = endResult.cumulative.fatality.total
+  const totalSevere = endResult.cumulative.hospitalized.total
+  const totalCritical = endResult.cumulative.critical.total
+  const totalCases = endResult.cumulative.recovered.total + endResult.cumulative.fatality.total
 
-  const peakSevere   = Math.round(Math.max(...result.deterministicTrajectory.map(x => x.hospitalized.total)))
-  const peakCritical = Math.round(Math.max(...result.deterministicTrajectory.map(x => x.critical.total + x.overflow.total)))
+  const severeFrac = (1.0 * totalSevere) / totalCases
+  const criticalFrac = (1.0 * totalCritical) / totalCases
+  const deathFrac = (1.0 * totalDeath) / totalCases
+  const mildFrac = 1 - severeFrac - criticalFrac - deathFrac
 
-  deathFrac    = forDisplay(deathFrac)
-  criticalFrac = forDisplay(criticalFrac)
-  severeFrac   = forDisplay(severeFrac)
-  mildFrac     = forDisplay(mildFrac)
+  const peakSevere = Math.round(Math.max(...result.deterministic.trajectory.map((x) => x.current.severe.total)))
+  const peakCritical = Math.round(Math.max(...result.deterministic.trajectory.map((x) => x.current.critical.total + x.current.overflow.total))) // prettier-ignore
+
+  const totalFormatter = (value: number) => formatNumber(value)
 
   // TODO: replace this with the table component (similar to severity table)
   return (
-    <Row>
+    <Row data-testid="OutcomeRatesTable">
       <Col lg={6}>
-        <h5>Proportions</h5>
+        <h5>{t('Proportions')}</h5>
         <table>
           <thead>
             <tr>
-              <th>Outcome &emsp; </th>
-              <th>Population average</th>
+              <th>{t('Outcome')} &emsp; </th>
+              <th>{t('Population average')}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Mild [%]: </td>
-              <td>{mildFrac}</td>
+              <td>{t('Mild')} [%]: </td>
+              <td>{percentageFormatter(mildFrac)}</td>
             </tr>
             <tr>
-              <td>Severe [%]: </td>
-              <td>{severeFrac}</td>
+              <td>{t('Severe')} [%]: </td>
+              <td>{percentageFormatter(severeFrac)}</td>
             </tr>
             <tr>
-              <td>Critical [%]: </td>
-              <td>{criticalFrac}</td>
+              <td>{t('Critical')} [%]: </td>
+              <td>{percentageFormatter(criticalFrac)}</td>
             </tr>
             <tr>
-              <td>Fatal [%]: </td>
-              <td>{deathFrac}</td>
+              <td>{t('Fatal')} [%]: </td>
+              <td>{percentageFormatter(deathFrac)}</td>
             </tr>
           </tbody>
         </table>
       </Col>
       <Col lg={6}>
-        <h5>Totals/Peak</h5>
+        <h5>{t('Totals/Peak')}</h5>
         <table>
           <thead>
             <tr>
-              <th>Quantity &emsp; </th>
-              <th>Peak/total value</th>
+              <th>{t('Quantity')} &emsp; </th>
+              <th>{t('Peak/total value')}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Total death: </td>
-              <td>{totalDeath}</td>
+              <td>{t('Total death')}: </td>
+              <td>{totalFormatter(totalDeath)}</td>
             </tr>
             <tr>
-              <td>Total severe: </td>
-              <td>{totalSevere}</td>
+              <td>{t('Total severe')}: </td>
+              <td>{totalFormatter(totalSevere)}</td>
             </tr>
             <tr>
-              <td>Peak severe: </td>
-              <td>{peakSevere}</td>
+              <td>{t('Peak severe')}: </td>
+              <td>{totalFormatter(peakSevere)}</td>
             </tr>
             <tr>
-              <td>Peak critical: </td>
-              <td>{peakCritical}</td>
+              <td>{t('Peak critical')}: </td>
+              <td>{totalFormatter(peakCritical)}</td>
             </tr>
           </tbody>
         </table>

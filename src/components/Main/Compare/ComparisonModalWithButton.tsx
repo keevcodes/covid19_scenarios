@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 
+import { useTranslation } from 'react-i18next'
+
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap'
 
 import FileUploadZone, { FileType } from './FileUploadZone'
@@ -12,6 +14,7 @@ export interface ButtonForModalProps {
 export function ComparisonModalWithButton({ files, onFilesChange }: ButtonForModalProps) {
   const [modalIsOpen, setModalIsOpen] = useState(false)
   const toggleModalIsOpen = () => setModalIsOpen(!modalIsOpen)
+  const { t } = useTranslation()
 
   return (
     <>
@@ -19,7 +22,7 @@ export function ComparisonModalWithButton({ files, onFilesChange }: ButtonForMod
         {`Compare`}
       </Button>
       <Modal className="height-fit" centered size="lg" isOpen={modalIsOpen} toggle={toggleModalIsOpen}>
-        <ModalHeader toggle={toggleModalIsOpen}>Modal title</ModalHeader>
+        <ModalHeader toggle={toggleModalIsOpen}>{t('Modal title')}</ModalHeader>
         <ModalBody>
           <FileUploadZone files={files} onFilesChange={onFilesChange} />
         </ModalBody>

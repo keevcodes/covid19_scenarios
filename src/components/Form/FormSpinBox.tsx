@@ -12,8 +12,8 @@ export interface FormSpinBoxProps<T> {
   label: string
   help?: string | React.ReactNode
   step?: number | string
-  min?: number | string
-  max?: number | string
+  min?: number
+  max?: number
   pattern?: string
   errors?: FormikErrors<T>
   touched?: FormikTouched<T>
@@ -35,6 +35,16 @@ export function FormSpinBox<T>({
   const showError = errorMessage && isTouched
   const borderDanger = showError ? 'border-danger' : ''
 
+  function validate(value: number) {
+    let error
+    if (min && value < min) {
+      error = `The input cannot be less than ${min}`
+    } else if (max && value > max) {
+      error = `The input cannot be greater than ${max}`
+    }
+    return error
+  }
+
   return (
     <Field>
       {() => (
@@ -53,6 +63,7 @@ export function FormSpinBox<T>({
                 min={min}
                 max={max}
                 pattern={pattern}
+                validate={validate}
               />
               {showError ? <div className="text-danger">{errorMessage}</div> : null}
             </Col>

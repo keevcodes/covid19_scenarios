@@ -8,16 +8,24 @@ import { Col, FormGroup, Row } from 'reactstrap'
 
 import FormLabel from './FormLabel'
 
-import { DateRange } from '../../algorithms/Param.types'
+import { DateRange } from '../../algorithms/types/Param.types'
 
-export interface FormInputProps {
+// Function to determine number of months to display on the datepicker.
+function getNumberOfMonthsCount(media: { tiny: boolean; small: boolean; medium: boolean }) {
+  const { tiny, small, medium } = media
+  if (tiny) return 1
+  if (small) return 2
+  if (medium) return 3
+  return 4
+}
+export interface FormDatePickerProps {
   identifier: string
   label: string
   help?: string | React.ReactNode
   allowPast?: boolean
 }
 
-export function FormDatePicker({ identifier, label, help, allowPast = true }: FormInputProps) {
+export function FormDatePicker({ identifier, label, help, allowPast = true }: FormDatePickerProps) {
   const [focusedInput, setFocusedInput] = useState<FocusedInputShape | null>(null)
 
   return (
@@ -38,10 +46,10 @@ export function FormDatePicker({ identifier, label, help, allowPast = true }: Fo
                     large: { minWidth: 1500 },
                   }}
                 >
-                  {media => {
-                    const { small, medium, large } = media
+                  {(media) => {
+                    const { small } = media
 
-                    const numberOfMonths = small ? 2 : medium ? 3 : 4
+                    const numberOfMonths = getNumberOfMonthsCount(media)
                     const orientation = small ? 'vertical' : 'horizontal'
                     const withPortal = small
 
@@ -72,7 +80,7 @@ export function FormDatePicker({ identifier, label, help, allowPast = true }: Fo
                           }
                         }}
                         focusedInput={focusedInput}
-                        onFocusChange={focusedInput => setFocusedInput(focusedInput)}
+                        onFocusChange={(focusedInput) => setFocusedInput(focusedInput)}
                         isOutsideRange={() => !allowPast}
                         numberOfMonths={numberOfMonths}
                         orientation={orientation}
